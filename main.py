@@ -50,6 +50,38 @@ def exit_app():
     """프로그램 종료"""
     window.destroy()
 
+# --- 편집 기능 함수들 ---
+
+def undo_action(event=None):
+    """실행 취소"""
+    try:
+        text_area.edit_undo()
+    except tk.TclError:
+        pass # 실행 취소 스택이 비어있을 때 오류 방지
+
+def redo_action(event=None):
+    """다시 실행"""
+    try:
+        text_area.edit_redo()
+    except tk.TclError:
+        pass # 다시 실행 스택이 비어있을 때 오류 방지
+
+def cut_action(event=None):
+    """잘라내기"""
+    text_area.event_generate("<<Cut>>")
+
+def copy_action(event=None):
+    """복사"""
+    text_area.event_generate("<<Copy>>")
+
+def paste_action(event=None):
+    """붙여넣기"""
+    text_area.event_generate("<<Paste>>")
+
+def select_all_action(event=None):
+    """모두 선택"""
+    text_area.tag_add("sel", "1.0", "end")
+    return "break" # 기본 이벤트 핸들러 실행 방지
 
 # 메인 윈도우 생성
 window = tk.Tk()
@@ -68,12 +100,26 @@ file_menu.add_command(label="다른 이름으로 저장", command=save_as_file)
 file_menu.add_separator() # 구분선
 file_menu.add_command(label="종료", command=exit_app)
 menu_bar.add_cascade(label="파일", menu=file_menu)
+
+# 편집 메뉴 생성
+edit_menu = tk.Menu(menu_bar, tearoff=0)
+edit_menu.add_command(label="실행 취소", command=undo_action)
+edit_menu.add_command(label="다시 실행", command=redo_action)
+edit_menu.add_separator()
+edit_menu.add_command(label="잘라내기", command=cut_action)
+edit_menu.add_command(label="복사", command=copy_action)
+edit_menu.add_command(label="붙여넣기", command=paste_action)
+edit_menu.add_separator()
+edit_menu.add_command(label="모두 선택", command=select_all_action)
+menu_bar.add_cascade(label="편집", menu=edit_menu)
+
 window.config(menu=menu_bar)
 
 # 텍스트 입력을 위한 위젯과 스크롤바 생성
 scrollbar = tk.Scrollbar(window)
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-text_area = tk.Text(window, wrap=tk.WORD, yscrollcommand=scrollbar.set, font=("Malgun Gothic", 12))
+# undo=True 옵션으로 실행 취소/다시 실행 기능 활성화
+text_area = tk.Text(window, wrap=tk.WORD, yscrollcommand=scrollbar.set, font=("Malgun Gothic", 12), undo=True)
 text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 scrollbar.config(command=text_area.yview)
 
